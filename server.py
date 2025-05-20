@@ -1,6 +1,7 @@
 from flask import Flask, render_template, redirect, url_for, send_from_directory, request
 import os
 import re
+from generate_table import generate_html_from_custom_fields
 
 app = Flask(__name__)
 
@@ -15,7 +16,7 @@ def home():
 @app.route('/create', methods=['POST'])
 def create_template():
     template_name = request.form.get('template_name', '').strip()
-    html_content = request.form.get('html_content', '').strip()
+    custom_fields = request.form.get('custom_fields', '').strip()
     
     # Validate template name
     if not template_name:
@@ -39,12 +40,20 @@ def create_template():
                                message_class="error-message",
                                subfolders=get_subfolders())
     
-    # Create template directory
+    # Generate HTML using LLM based on custom fields
     try:
+        html_content = generate_html_from_custom_fields(custom_fields)
+        if not html_content:
+            return render_template('home.html',
+                                  message="Failed to generate HTML content",
+                                  message_class="error-message",
+                                  subfolders=get_subfolders())
+        
+        # Create template directory
         os.makedirs(template_dir)
         
         # Create index.html file
-        with open(os.path.join(template_dir, 'index.html'), 'w') as f:
+        with open(os.path.join(template_dir, 'index.html'), 'w', encoding='utf-8') as f:
             f.write(html_content)
         
         return render_template('home.html', 

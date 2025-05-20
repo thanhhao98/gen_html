@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>From lấy ý kiến khách hàng</title>
+    <style>
+        :root {
+            --primary-color: #007BFF;
+            --accent-color: #6C757D;
+            --background-color: #F8F9FA;
+            --text-color: #343A40;
+            --border-radius: 10px;
+            --transition-duration: 0.3s;
+            --font-family: 'Roboto', sans-serif;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .form-card {
+            background: #fff;
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            max-width: 600px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        td {
+            padding: 10px;
+            vertical-align: top;
+        }
+
+        input[type="text"],
+        input[type="tel"],
+        input[type="date"],
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border-radius: var(--border-radius);
+            border: 1px solid #ccc;
+            transition: border-color var(--transition-duration), box-shadow var(--transition-duration);
+        }
+
+        input[type="text"]:focus,
+        input[type="tel"]:focus,
+        input[type="date"]:focus,
+        textarea:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .submit-btn {
+            background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+            color: #fff;
+            padding: 12px;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: transform var(--transition-duration);
+            width: 100%;
+            font-size: 16px;
+        }
+
+        .submit-btn:hover {
+            transform: scale(1.02);
+        }
+
+        .rating {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .rating input {
+            display: none;
+        }
+
+        .rating label {
+            font-size: 24px;
+            color: #ccc;
+            transition: color var(--transition-duration);
+            cursor: pointer;
+        }
+
+        .rating input:checked ~ label,
+        .rating label:hover,
+        .rating label:hover ~ label {
+            color: var(--primary-color);
+        }
+
+        .error {
+            color: red;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-card">
+        <h1>From lấy ý kiến khách hàng</h1>
+        <form id="customerFeedbackForm">
+            <table>
+                <tr>
+                    <td><label for="full_name">Họ và tên:</label></td>
+                    <td>
+                        <input type="text" id="full_name" name="full_name" placeholder="Nhập họ và tên" required>
+                        <div class="error" id="nameError"></div>
+                    </td>
+                </tr>
+                <tr>
+                    <td><label for="phone_number">Số điện thoại:</label></td>
+                    <td>
+                        <input type="tel" id="phone_number" name="phone_number" placeholder="Nhập số điện thoại" pattern="^(03|05|07|08|09)[0-9]{8}$" required>
+                        <div class="error" id="phoneError"></div>
+                    </td>
+                </tr>
+                <tr>
+                    <td><label for="dob">Ngày sinh:</label></td>
+                    <td>
+                        <input type="date" id="dob" name="dob" required>
+                        <div class="error" id="dobError"></div>
+                    </td>
+                </tr>
+                <!-- Custom Vietnamese fields -->
+                <tr>
+                    <td><label for="feedback">Phản hồi:</label></td>
+                    <td>
+                        <textarea id="feedback" name="feedback" placeholder="Nhập phản hồi của bạn"></textarea>
+                    </td>
+                </tr>
+                <tr>
+                    <td><label>Độ hài lòng:</label></td>
+                    <td class="rating">
+                        <input type="radio" id="star5" name="rating" value="5"><label for="star5">★</label>
+                        <input type="radio" id="star4" name="rating" value="4"><label for="star4">★</label>
+                        <input type="radio" id="star3" name="rating" value="3"><label for="star3">★</label>
+                        <input type="radio" id="star2" name="rating" value="2"><label for="star2">★</label>
+                        <input type="radio" id="star1" name="rating" value="1"><label for="star1">★</label>
+                    </td>
+                </tr>
+            </table>
+            <button type="submit" class="submit-btn">Gửi</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('customerFeedbackForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const fullName = document.getElementById('full_name').value;
+            const phoneNumber = document.getElementById('phone_number').value;
+            const dateOfBirth = document.getElementById('dob').value;
+            const feedback = document.getElementById('feedback').value;
+            const rating = document.querySelector('input[name="rating"]:checked') ? document.querySelector('input[name="rating"]:checked').value : null;
+
+            const formData = {
+                fullName: fullName,
+                phoneNumber: phoneNumber,
+                dateOfBirth: dateOfBirth,
+                feedback: feedback,
+                rating: rating
+            };
+
+            console.log(formData);
+
+            // Validation feedback
+            document.getElementById('nameError').textContent = fullName ? '' : 'Vui lòng nhập họ và tên';
+            document.getElementById('phoneError').textContent = phoneNumber.match(/^(03|05|07|08|09)[0-9]{8}$/) ? '' : 'Số điện thoại không hợp lệ';
+            document.getElementById('dobError').textContent = dateOfBirth ? '' : 'Vui lòng chọn ngày sinh';
+        });
+    </script>
+</body>
+</html>
