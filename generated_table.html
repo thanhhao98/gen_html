@@ -3,130 +3,185 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Biểu mẫu khách hàng</title>
+    <title>Form Khách Hàng</title>
     <style>
+        :root {
+            --primary-color: #3498db;
+            --accent-color: #2ecc71;
+            --background-color: #f5f5f5;
+            --text-color: #333;
+            --font-family: 'Roboto', sans-serif;
+        }
+
         body {
-            font-family: 'Roboto', sans-serif;
-            background: linear-gradient(to right, #f8f9fa, #e9ecef);
+            font-family: var(--font-family);
+            background-color: var(--background-color);
+            color: var(--text-color);
             margin: 0;
-            padding: 20px;
+            padding: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
         }
-        table {
+
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            max-width: 500px;
             width: 100%;
-            max-width: 600px;
-            border-collapse: collapse;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            background-color: #fff;
-            border-radius: 8px;
-            overflow: hidden;
-        }
-        th, td {
-            padding: 15px;
-            text-align: left;
-        }
-        tr:nth-child(even) {
-            background-color: #f2f2f2;
-        }
-        input, textarea, select {
-            width: 100%;
-            padding: 10px;
-            margin-top: 5px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
             box-sizing: border-box;
-            transition: border-color 0.3s;
         }
-        input:focus, textarea:focus, select:focus {
-            border-color: #007bff;
-            outline: none;
-        }
-        button {
-            background-color: #007bff;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        h2 {
+
+        h1 {
             text-align: center;
             margin-bottom: 20px;
-            color: #333;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        td {
+            padding: 10px;
+        }
+
+        input[type="text"],
+        input[type="tel"],
+        input[type="date"],
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="tel"]:focus,
+        input[type="date"]:focus,
+        textarea:focus {
+            border-color: var(--primary-color);
+        }
+
+        .rating {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .rating input {
+            display: none;
+        }
+
+        .rating label {
+            font-size: 24px;
+            color: #ddd;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .rating input:checked ~ label,
+        .rating label:hover,
+        .rating label:hover ~ label {
+            color: var(--accent-color);
+        }
+
+        .submit-btn {
+            background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+            color: #fff;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            width: 100%;
+            cursor: pointer;
+            font-size: 16px;
+            transition: transform 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            transform: scale(1.02);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #e0e0e0, #ffffff);
+            padding: 20px;
+            border-radius: 12px 12px 0 0;
+            text-align: center;
+        }
+
+        @media (max-width: 600px) {
+            .card {
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
         }
     </style>
 </head>
 <body>
-
-    <form id="customerForm">
-        <table>
-            <tr>
-                <th colspan="2"><h2>Thông tin khách hàng</h2></th>
-            </tr>
-            <tr>
-                <td>Họ và tên:</td>
-                <td><input type="text" id="fullName" placeholder="Nhập họ và tên" required></td>
-            </tr>
-            <tr>
-                <td>Số điện thoại:</td>
-                <td><input type="tel" id="phoneNumber" placeholder="Nhập số điện thoại" pattern="(03|05|07|08|09)[0-9]{8}" required></td>
-            </tr>
-            <tr>
-                <td>Ngày sinh:</td>
-                <td><input type="date" id="dob" required></td>
-            </tr>
-            <tr>
-                <td>Độ hài lòng của khách hàng:</td>
-                <td>
-                    <select id="satisfaction">
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3">3</option>
-                        <option value="4">4</option>
-                        <option value="5">5</option>
-                    </select>
-                </td>
-            </tr>
-            <tr>
-                <td>Đánh giá cụ thể:</td>
-                <td><textarea id="feedback" rows="4" placeholder="Nhập ý kiến của bạn"></textarea></td>
-            </tr>
-            <tr>
-                <td colspan="2" style="text-align: center;">
-                    <button type="submit">Gửi</button>
-                </td>
-            </tr>
-        </table>
-    </form>
+    <div class="card">
+        <div class="header">
+            <h1>Thông Tin Khách Hàng</h1>
+        </div>
+        <form id="customerForm">
+            <table>
+                <tr>
+                    <td><label for="fullName">Họ và Tên:</label></td>
+                    <td><input type="text" id="fullName" placeholder="Nhập họ và tên" required></td>
+                </tr>
+                <tr>
+                    <td><label for="phoneNumber">Số Điện Thoại:</label></td>
+                    <td><input type="tel" id="phoneNumber" placeholder="Nhập số điện thoại" pattern="(03|05|07|08|09)[0-9]{8}" required></td>
+                </tr>
+                <tr>
+                    <td><label for="dob">Ngày Sinh:</label></td>
+                    <td><input type="date" id="dob" required></td>
+                </tr>
+                <tr>
+                    <td><label>Độ Hài Lòng:</label></td>
+                    <td class="rating">
+                        <input type="radio" id="star5" name="rating" value="5"><label for="star5">&#9733;</label>
+                        <input type="radio" id="star4" name="rating" value="4"><label for="star4">&#9733;</label>
+                        <input type="radio" id="star3" name="rating" value="3"><label for="star3">&#9733;</label>
+                        <input type="radio" id="star2" name="rating" value="2"><label for="star2">&#9733;</label>
+                        <input type="radio" id="star1" name="rating" value="1"><label for="star1">&#9733;</label>
+                    </td>
+                </tr>
+                <tr>
+                    <td><label for="feedback">Đánh Giá Cụ Thể:</label></td>
+                    <td><textarea id="feedback" rows="4" placeholder="Nhập ý kiến của bạn"></textarea></td>
+                </tr>
+            </table>
+            <button type="submit" class="submit-btn">Gửi Thông Tin</button>
+        </form>
+    </div>
 
     <script>
         document.getElementById('customerForm').addEventListener('submit', function(event) {
             event.preventDefault();
-            
             const fullName = document.getElementById('fullName').value;
             const phoneNumber = document.getElementById('phoneNumber').value;
             const dob = document.getElementById('dob').value;
-            const satisfaction = document.getElementById('satisfaction').value;
+            const rating = document.querySelector('input[name="rating"]:checked') ? document.querySelector('input[name="rating"]:checked').value : null;
             const feedback = document.getElementById('feedback').value;
 
-            const formData = {
+            const customerData = {
                 fullName: fullName,
                 phoneNumber: phoneNumber,
                 dateOfBirth: dob,
-                satisfaction: satisfaction,
-                feedback: feedback
+                satisfactionRating: rating,
+                detailedFeedback: feedback
             };
 
-            console.log(formData);
+            console.log(customerData);
         });
     </script>
-
 </body>
 </html>

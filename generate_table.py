@@ -62,16 +62,32 @@ def generate_html_table():
       * Error messages must be in Vietnamese
     
     DESIGN REQUIREMENTS:
-    - Create a clean, modern, and professional design with soft shadows and rounded corners
-    - Use a pleasing color palette suitable for Vietnamese users (consider using colors that resonate with Vietnamese culture)
-    - Add subtle animations for form interactions (focus states, button hover effects)
-    - Make the form responsive for all device sizes
-    - Use a font that properly supports Vietnamese characters (like Roboto, Open Sans, or Noto Sans Vietnamese)
-    - Include appropriate spacing between form elements for better readability
-    - Add subtle background patterns or gradients to enhance visual appeal
-    - Style the table with alternating row colors for better readability
-    - Use clear visual hierarchy with proper heading sizes and font weights
-    - For rating inputs, use visually appealing interactive elements
+    - Create a premium, modern UI with a professional design suitable for enterprise applications
+    - Use a visually appealing color palette with a primary brand color and complementary accent colors
+    - Implement a card-based design with elegant shadows (box-shadow: 0 10px 25px rgba(0,0,0,0.1))
+    - Use modern CSS techniques including:
+      * Subtle gradients for buttons and backgrounds
+      * Border-radius of 8-12px for components
+      * Variable font weights for better typography
+      * CSS Grid or Flexbox for responsive layouts
+    - Add sophisticated animations and transitions:
+      * Smooth hover effects on all interactive elements (transform: scale(1.02), transition: 0.3s ease)
+      * Loading/success animations for form submission
+      * Subtle micro-interactions (focus states, validation feedback)
+    - Implement modern form elements:
+      * Custom-styled checkboxes and radio buttons
+      * Elegant dropdown menus with custom styling
+      * Placeholder animations for text inputs
+      * Clean, accessible form validation with visual feedback
+    - For rating inputs, use star ratings or emoji-based feedback systems instead of plain dropdowns
+    - Include visual elements like icons from Font Awesome or Material Icons for better UX
+    - Use a modern Vietnamese-compatible font like 'Montserrat', 'Nunito', or 'Roboto'
+    - Design the submit button with a gradient background and hover animation
+    - Add a decorative header section with a subtle pattern or gradient background
+    - Implement proper spacing using a consistent rhythm (8px multipliers for margins/padding)
+    - Enhance mobile responsiveness with media queries for different device sizes
+    - Add subtle background patterns or textures to add depth
+    - Use CSS variables for consistent color application throughout the form
     
     Include all necessary HTML, CSS, and JavaScript in a single file.
     """
