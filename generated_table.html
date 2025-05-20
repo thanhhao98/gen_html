@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biểu mẫu khách hàng</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(to right, #f8f9fa, #e9ecef);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        table {
+            width: 100%;
+            max-width: 600px;
+            border-collapse: collapse;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            background-color: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 15px;
+            text-align: left;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            transition: border-color 0.3s;
+        }
+        input:focus, textarea:focus, select:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+
+    <form id="customerForm">
+        <table>
+            <tr>
+                <th colspan="2"><h2>Thông tin khách hàng</h2></th>
+            </tr>
+            <tr>
+                <td>Họ và tên:</td>
+                <td><input type="text" id="fullName" placeholder="Nhập họ và tên" required></td>
+            </tr>
+            <tr>
+                <td>Số điện thoại:</td>
+                <td><input type="tel" id="phoneNumber" placeholder="Nhập số điện thoại" pattern="(03|05|07|08|09)[0-9]{8}" required></td>
+            </tr>
+            <tr>
+                <td>Ngày sinh:</td>
+                <td><input type="date" id="dob" required></td>
+            </tr>
+            <tr>
+                <td>Độ hài lòng của khách hàng:</td>
+                <td>
+                    <select id="satisfaction">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>Đánh giá cụ thể:</td>
+                <td><textarea id="feedback" rows="4" placeholder="Nhập ý kiến của bạn"></textarea></td>
+            </tr>
+            <tr>
+                <td colspan="2" style="text-align: center;">
+                    <button type="submit">Gửi</button>
+                </td>
+            </tr>
+        </table>
+    </form>
+
+    <script>
+        document.getElementById('customerForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            
+            const fullName = document.getElementById('fullName').value;
+            const phoneNumber = document.getElementById('phoneNumber').value;
+            const dob = document.getElementById('dob').value;
+            const satisfaction = document.getElementById('satisfaction').value;
+            const feedback = document.getElementById('feedback').value;
+
+            const formData = {
+                fullName: fullName,
+                phoneNumber: phoneNumber,
+                dateOfBirth: dob,
+                satisfaction: satisfaction,
+                feedback: feedback
+            };
+
+            console.log(formData);
+        });
+    </script>
+
+</body>
+</html>

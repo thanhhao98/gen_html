@@ -1,0 +1,9 @@
+When the submit button is clicked, collect all input values from the form fields in the table and create a JavaScript object containing this information. The object should store each form field's value with an appropriate key name matching the field's purpose (e.g., fullName, phoneNumber, dateOfBirth, etc.). After collecting the data, display this object in the browser's console for verification. This allows for easy testing and validation that all user-entered information is being properly captured before it would be sent to a server.
+
+Example object structure:
+{
+  fullName: "John Smith",
+  phoneNumber: "1234567890", 
+  dateOfBirth: "1990-01-01"
+}
+

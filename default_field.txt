@@ -1,0 +1,3 @@
+full_name: text input for collecting customer's full name
+phone_number: phone input with validation for proper phone number format
+dob: date input with calendar dropdown, format: DD-MM-YYYY
