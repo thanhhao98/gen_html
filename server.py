@@ -17,6 +17,7 @@ def home():
 def create_template():
     template_name = request.form.get('template_name', '').strip()
     custom_fields = request.form.get('custom_fields', '').strip()
+    print("from main", custom_fields)
     
     # Validate template name
     if not template_name:

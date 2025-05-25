@@ -189,6 +189,7 @@ def generate_html_from_custom_fields(custom_fields):
     # Generate HTML using GPT-4o
     try:
         print("Making API call to OpenAI...")
+        print(prompt)
         response = client.chat.completions.create(
             model="gpt-4o",
             messages=[
