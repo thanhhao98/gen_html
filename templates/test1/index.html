@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>From lấy ý kiến khách hàng</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: #f4f7f9;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .form-container {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            width: 90%;
+            max-width: 600px;
+        }
+        h1 {
+            text-align: center;
+            color: #007bff;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        td {
+            padding: 12px;
+            vertical-align: top;
+        }
+        input[type="text"],
+        input[type="tel"],
+        input[type="date"],
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        input[type="text"]:focus,
+        input[type="tel"]:focus,
+        input[type="date"]:focus,
+        textarea:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+        }
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        .rating {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+        .rating input {
+            display: none;
+        }
+        .rating label {
+            font-size: 24px;
+            color: #ddd;
+            transition: color 0.3s ease;
+            cursor: pointer;
+        }
+        .rating input:checked ~ label,
+        .rating label:hover,
+        .rating label:hover ~ label {
+            color: #ffcc00;
+        }
+        .submit-btn {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: #fff;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            width: 100%;
+            font-size: 16px;
+        }
+        .submit-btn:hover {
+            transform: scale(1.02);
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h1>From lấy ý kiến khách hàng</h1>
+        <form id="customerFeedbackForm">
+            <table>
+                <tr>
+                    <td><label for="full_name">Họ tên khách hàng:</label></td>
+                    <td><input type="text" id="full_name" name="full_name" placeholder="Nhập họ tên" required></td>
+                </tr>
+                <tr>
+                    <td><label for="phone_number">Số điện thoại:</label></td>
+                    <td><input type="tel" id="phone_number" name="phone_number" placeholder="Nhập số điện thoại" pattern="^0[35789]\d{8}$" required></td>
+                </tr>
+                <tr>
+                    <td><label for="dob">Ngày sinh:</label></td>
+                    <td><input type="date" id="dob" name="dob" required></td>
+                </tr>
+                <tr>
+                    <td><label for="father_name">Họ tên bố:</label></td>
+                    <td><input type="text" id="father_name" name="father_name" placeholder="Nhập họ tên bố" required></td>
+                </tr>
+                <tr>
+                    <td><label for="mother_name">Họ tên mẹ:</label></td>
+                    <td><input type="text" id="mother_name" name="mother_name" placeholder="Nhập họ tên mẹ" required></td>
+                </tr>
+                <tr>
+                    <td><label>Độ hài lòng của khách hàng:</label></td>
+                    <td>
+                        <div class="rating">
+                            <input type="radio" id="star5" name="customer_satisfaction" value="5"><label for="star5">★</label>
+                            <input type="radio" id="star4" name="customer_satisfaction" value="4"><label for="star4">★</label>
+                            <input type="radio" id="star3" name="customer_satisfaction" value="3"><label for="star3">★</label>
+                            <input type="radio" id="star2" name="customer_satisfaction" value="2"><label for="star2">★</label>
+                            <input type="radio" id="star1" name="customer_satisfaction" value="1"><label for="star1">★</label>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+            <button type="submit" class="submit-btn">Gửi</button>
+        </form>
+    </div>
+    <script>
+        document.getElementById('customerFeedbackForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const formData = {
+                fullName: document.getElementById('full_name').value,
+                phoneNumber: document.getElementById('phone_number').value,
+                dateOfBirth: document.getElementById('dob').value,
+                fatherName: document.getElementById('father_name').value,
+                motherName: document.getElementById('mother_name').value,
+                customerSatisfaction: document.querySelector('input[name="customer_satisfaction"]:checked') ? document.querySelector('input[name="customer_satisfaction"]:checked').value : null
+            };
+            console.log(formData);
+        });
+    </script>
+</body>
+</html>

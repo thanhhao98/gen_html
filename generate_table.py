@@ -14,13 +14,13 @@ client = OpenAI(api_key=openai_api_key)
 
 def generate_html_from_custom_fields(custom_fields):
     """
-    Generates HTML table structure based on provided custom field information.
+    Generates HTML table structure and specs.json based on provided custom field information.
     
     Args:
         custom_fields (str): A string containing field definitions provided by the user
     
     Returns:
-        str: The generated HTML content
+        dict: Dictionary containing 'html' and 'specs' content, or None if error
     """
     print(f"Starting HTML generation with custom fields: {custom_fields[:100]}...")
     
@@ -53,19 +53,44 @@ def generate_html_from_custom_fields(custom_fields):
     
     # Create prompt for GPT-4o
     prompt = f"""
-    Create a standalone HTML file with embedded CSS and JavaScript that includes:
+    Generate TWO outputs:
     
-    1. A form with a table structure containing the following default fields:
+    1. A standalone HTML file with embedded CSS and JavaScript that includes:
+    
+    - A form with a table structure containing the following default fields:
     {default_field_definitions}
     
-    2. Also include these custom fields defined in Vietnamese (interpret them intelligently even if the descriptions are brief):
+    - Also include these custom fields defined in Vietnamese (interpret them intelligently even if the descriptions are brief):
     {custom_fields}
     
-    3. A submit button that implements this functionality:
+    - A submit button that implements this functionality:
     {submit_functionality}
     
-    4. Use this exact title for the form (as an h1 element):
+    - Use this exact title for the form (as an h1 element):
     {form_title}
+    
+    2. A JSON specification file (specs.json) containing field metadata in this exact format:
+    [
+        {{"ten_hien_thi":"Display Name in Vietnamese","ten_field":"field_name_snake_case","kieu_du_lieu":"field_type"}},
+        // ... more fields
+    ]
+    
+    For the specs.json file:
+    - "ten_hien_thi": The display name exactly as it appears in Vietnamese on the form
+    - "ten_field": Snake_case field name that matches the HTML input name attribute
+    - "kieu_du_lieu": Field type - use these values:
+      * "text" for text inputs
+      * "tel" for phone number inputs  
+      * "email" for email inputs
+      * "date" for date inputs
+      * "select" for dropdown/select inputs
+      * "textarea" for large text areas
+      * "rating" for rating/satisfaction fields
+      * "number" for numeric inputs
+      * "checkbox" for checkbox inputs
+      * "radio" for radio button inputs
+    
+    Include ALL fields (both default and custom) in the specs.json array.
     
     IMPORTANT INTERPRETATION GUIDELINES:
     - For the custom fields in Vietnamese, be flexible and interpret the meaning even if descriptions are minimal
@@ -172,7 +197,16 @@ def generate_html_from_custom_fields(custom_fields):
     - Add subtle background patterns or textures to add depth
     - Use CSS variables for consistent color application throughout the form
     
-    Include all necessary HTML, CSS, and JavaScript in a single file.
+    OUTPUT FORMAT:
+    Please provide your response in this exact format:
+    
+    ```html
+    [Complete HTML content here]
+    ```
+    
+    ```json
+    [Complete specs.json content here]
+    ```
     
     IMPLEMENTATION VERIFICATION REQUIREMENTS:
     - Confirm all fields have the specified styling applied
@@ -182,6 +216,7 @@ def generate_html_from_custom_fields(custom_fields):
     - Check that the form renders properly on different screen sizes
     - Verify that all rating systems are fully functional with the EXACT number of rating points specified in the field description
     - Test all validation rules with both valid and invalid inputs
+    - Ensure specs.json contains ALL form fields with correct metadata
     """
     
     print(f"Prepared prompt for GPT-4o ({len(prompt)} characters)")
@@ -203,21 +238,35 @@ def generate_html_from_custom_fields(custom_fields):
         )
         print(f"Received response from OpenAI (length: {len(response.choices[0].message.content)} characters)")
         
-        html_content = response.choices[0].message.content
+        full_content = response.choices[0].message.content
         
-        # Extract just the HTML if it's wrapped in markdown code blocks
-        if "```html" in html_content and "```" in html_content.split("```html")[1]:
-            html_content = html_content.split("```html")[1].split("```")[0].strip()
-            print("Extracted HTML content from markdown code block with ```html tag")
-        elif "```" in html_content:
-            html_content = html_content.split("```")[1].split("```")[0].strip()
-            print("Extracted HTML content from generic markdown code block")
+        # Extract HTML content
+        html_content = ""
+        if "```html" in full_content:
+            html_section = full_content.split("```html")[1].split("```")[0].strip()
+            html_content = html_section
+            print("Extracted HTML content from markdown code block")
         
-        print(f"Successfully generated HTML content ({len(html_content)} characters)")
-        return html_content
+        # Extract JSON content
+        specs_content = ""
+        if "```json" in full_content:
+            json_section = full_content.split("```json")[1].split("```")[0].strip()
+            specs_content = json_section
+            print("Extracted JSON content from markdown code block")
+        
+        if html_content and specs_content:
+            print(f"Successfully generated HTML content ({len(html_content)} characters)")
+            print(f"Successfully generated specs content ({len(specs_content)} characters)")
+            return {
+                'html': html_content,
+                'specs': specs_content
+            }
+        else:
+            print("Failed to extract both HTML and JSON content from response")
+            return None
     
     except Exception as e:
-        print(f"Error generating HTML: {str(e)}")
+        print(f"Error generating content: {str(e)}")
         return None
 
 def generate_html_table():
@@ -235,16 +284,21 @@ def generate_html_table():
         with open('custom_field.txt', 'r', encoding='utf-8') as f:
             custom_field_definitions = f.read().strip()
     
-    # Generate HTML using the new function
-    html_content = generate_html_from_custom_fields(custom_field_definitions)
+    # Generate content using the new function
+    generated_content = generate_html_from_custom_fields(custom_field_definitions)
     
-    if html_content:
+    if generated_content and 'html' in generated_content:
         # Save HTML to file
         with open('generated_table.html', 'w', encoding='utf-8') as f:
-            f.write(html_content)
+            f.write(generated_content['html'])
+        
+        # Save specs.json to file if it exists
+        if 'specs' in generated_content and generated_content['specs']:
+            with open('generated_specs.json', 'w', encoding='utf-8') as f:
+                f.write(generated_content['specs'])
         
         print(f"HTML file generated successfully: generated_table.html")
-        return html_content
+        return generated_content['html']
     else:
         return None
 

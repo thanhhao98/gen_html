@@ -1,0 +1,8 @@
+[
+    {"ten_hien_thi":"Họ tên khách hàng","ten_field":"full_name","kieu_du_lieu":"text"},
+    {"ten_hien_thi":"Số điện thoại","ten_field":"phone_number","kieu_du_lieu":"tel"},
+    {"ten_hien_thi":"Ngày sinh","ten_field":"dob","kieu_du_lieu":"date"},
+    {"ten_hien_thi":"Họ tên bố","ten_field":"father_name","kieu_du_lieu":"text"},
+    {"ten_hien_thi":"Họ tên mẹ","ten_field":"mother_name","kieu_du_lieu":"text"},
+    {"ten_hien_thi":"Độ hài lòng của khách hàng","ten_field":"customer_satisfaction","kieu_du_lieu":"rating"}
+]

@@ -43,8 +43,8 @@ def create_template():
     
     # Generate HTML using LLM based on custom fields
     try:
-        html_content = generate_html_from_custom_fields(custom_fields)
-        if not html_content:
+        generated_content = generate_html_from_custom_fields(custom_fields)
+        if not generated_content or 'html' not in generated_content:
             return render_template('home.html',
                                   message="Failed to generate HTML content",
                                   message_class="error-message",
@@ -55,7 +55,12 @@ def create_template():
         
         # Create index.html file
         with open(os.path.join(template_dir, 'index.html'), 'w', encoding='utf-8') as f:
-            f.write(html_content)
+            f.write(generated_content['html'])
+        
+        # Create specs.json file if specs content exists
+        if 'specs' in generated_content and generated_content['specs']:
+            with open(os.path.join(template_dir, 'specs.json'), 'w', encoding='utf-8') as f:
+                f.write(generated_content['specs'])
         
         return render_template('home.html', 
                                message=f"Template '{template_name}' created successfully", 

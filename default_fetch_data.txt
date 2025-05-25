@@ -1,0 +1,14 @@
+curl -X GET "http://localhost:5001/api/mock/{template_name}"
+{
+  "data": {
+    "customer_satisfaction": 4,
+    "dob": "15/06/1990",
+    "father_name": "Nguy\u1ec5n V\u0103n B\u00ecnh",
+    "full_name": "Nguy\u1ec5n V\u0103n An",
+    "mother_name": "Tr\u1ea7n Th\u1ecb Lan",
+    "phone_number": "0987654321"
+  },
+  "generated_by": "llm",
+  "success": true,
+  "template": "test1"
+}
