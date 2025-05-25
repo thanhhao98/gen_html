@@ -1,0 +1,279 @@
+Generate TWO outputs:
+
+1. A standalone HTML file with embedded CSS and JavaScript that includes:
+
+- A form with a table structure containing the following default fields:
+{default_field_definitions}
+
+- Also include these custom fields defined in Vietnamese (interpret them intelligently even if the descriptions are brief):
+{custom_fields}
+
+- A submit button that implements this functionality:
+{submit_functionality}
+
+- Use this exact title for the form (as an h1 element):
+{form_title}
+
+- Automatically load data from this API endpoint when the page loads:
+{api_endpoint}
+
+- Add these specific HTML elements:
+  * Loading spinner element with id="loadingSpinner" (initially visible during page load)
+  * Message display div with id="messageDiv" for success/error messages
+  * Style the loading indicator prominently near the top of the form
+
+- When the API endpoint is provided, add JavaScript functionality to:
+  * Automatically make a GET request to the API endpoint when the page loads (using window.onload or DOMContentLoaded)
+  * Parse the JSON response and populate form fields with the data
+  * Handle loading states and error cases
+  * Display success/error messages to the user
+  * Hide the loading spinner once data is loaded or an error occurs
+
+2. A JSON specification file (specs.json) containing field metadata in this exact format:
+[
+    {{"ten_hien_thi":"Display Name in Vietnamese","ten_field":"field_name_snake_case","kieu_du_lieu":"field_type"}},
+    // ... more fields
+]
+
+For the specs.json file:
+- "ten_hien_thi": The display name exactly as it appears in Vietnamese on the form
+- "ten_field": Snake_case field name that matches the HTML input name attribute
+- "kieu_du_lieu": Field type - use these values:
+  * "text" for text inputs
+  * "tel" for phone number inputs  
+  * "email" for email inputs
+  * "date" for date inputs
+  * "select" for dropdown/select inputs
+  * "textarea" for large text areas
+  * "rating" for rating/satisfaction fields
+  * "number" for numeric inputs
+  * "checkbox" for checkbox inputs
+  * "radio" for radio button inputs
+
+Include ALL fields (both default and custom) in the specs.json array.
+
+IMPORTANT INTERPRETATION GUIDELINES:
+- For the custom fields in Vietnamese, be flexible and interpret the meaning even if descriptions are minimal
+- Infer the appropriate input type based on the field description
+- For rating scales, use appropriate UI elements like star ratings or slider inputs
+- For text inputs accepting detailed feedback, provide appropriate textarea elements
+- Match field names intelligently with their likely purpose in the submission function
+- EVERY field must have appropriate styling and behavior specific to its type
+
+IMPORTANT REQUIREMENTS:
+
+- The HTML document should use Vietnamese language for all text, labels, placeholders, error messages, and button text
+- Set the language attribute to Vietnamese (vi) in the HTML tag
+- Use proper Vietnamese character encoding (UTF-8)
+- For validation:
+  * Phone numbers should follow Vietnamese format (10 digits, typically starting with 03, 05, 07, 08, 09)
+  * Date formats should follow Vietnamese convention (DD/MM/YYYY)
+  * Error messages must be in Vietnamese
+
+API INTEGRATION REQUIREMENTS:
+- Automatically load data from the API when the page loads (no manual button required)
+- Implement JavaScript fetch() to call the API endpoint automatically on page load
+- Show loading spinner/indicator during initial page load and API call
+- On successful API response, automatically populate form fields with returned data from the "data" object
+- Map API response fields to form inputs based on field names (e.g., response.data.full_name -> input[name="full_name"])
+- Handle API errors gracefully with Vietnamese error messages
+- Add visual feedback for successful data loading
+- Hide loading spinner once data is loaded or error occurs
+- Include complete JavaScript code that:
+  * Automatically makes GET request to the API endpoint when page loads (using DOMContentLoaded event)
+  * Parses JSON response and extracts the "data" object
+  * Iterates through all form inputs and populates them if matching field exists in response.data
+  * Handles different input types (text, select, radio, checkbox, textarea, etc.)
+  * Converts Vietnamese date format (DD/MM/YYYY) to ISO format (YYYY-MM-DD) for HTML date inputs
+  * Shows loading state during initial load
+  * Displays success/error messages in Vietnamese
+  * Hides loading spinner after completion
+
+DESIGN REQUIREMENTS:
+- Create a premium, modern UI with a professional design suitable for enterprise applications
+- Use a visually appealing color palette with a primary brand color and complementary accent colors
+- Implement a card-based design with elegant shadows (box-shadow: 0 10px 25px rgba(0,0,0,0.1))
+- Use modern CSS techniques including:
+  * Subtle gradients for buttons and backgrounds
+  * Border-radius of 8-12px for components
+  * Variable font weights for better typography
+  * CSS Grid or Flexbox for responsive layouts
+- Add sophisticated animations and transitions:
+  * Smooth hover effects on all interactive elements (transform: scale(1.02), transition: 0.3s ease)
+  * Loading/success animations for form submission
+  * Subtle micro-interactions (focus states, validation feedback)
+- Implement modern form elements:
+  * Custom-styled checkboxes and radio buttons
+  * Elegant dropdown menus with custom styling
+  * Placeholder animations for text inputs
+  * Clean, accessible form validation with visual feedback
+
+FIELD-SPECIFIC STYLING AND BEHAVIOR REQUIREMENTS:
+- Text inputs:
+  * Apply consistent padding (12px), border-radius, and subtle border
+  * Include focus animation (border color change, subtle glow effect)
+  * Add floating or animated labels/placeholders
+  * Implement real-time validation with visual feedback
+
+- Textarea elements:
+  * Auto-resize based on content (or set appropriate min/max height)
+  * Line height and padding optimized for readability
+  * Character/word count display when appropriate
+  * Smooth focus transitions
+
+- Dropdown selects:
+  * Custom arrow indicator for dropdown
+  * Styled dropdown menu with hover effects
+  * Properly aligned and consistent with other form elements
+  * Animated dropdown expansion/collapse
+
+- Checkboxes and radio buttons:
+  * Replace default styling with custom visuals (maintain accessibility)
+  * Clear visual distinction between checked/unchecked states
+  * Smooth transition animations between states
+  * Adequate spacing and touch targets for mobile
+
+- Date inputs:
+  * Formatted according to Vietnamese convention (DD/MM/YYYY)
+  * Custom datepicker styling that matches overall design
+  * Calendar popup with elegant animations
+  * Pre-validation to ensure correct date format
+
+- Number inputs:
+  * Custom styled increment/decrement buttons
+  * Input validation for numeric values
+  * Appropriate min/max constraints where logical
+  * Proper formatting for currency or percentage values if applicable
+
+- Email/Phone inputs:
+  * Field-specific validation (email format, Vietnamese phone format)
+  * Visual indicators for validation status
+  * Appropriate keyboard type on mobile devices
+  * Helpful error messages in Vietnamese for invalid inputs
+
+RATING IMPLEMENTATION REQUIREMENTS:
+- For any rating or satisfaction fields (like "Độ hài lòng của khách hàng" or similar):
+  * Always parse the field description to identify any specified rating scale (e.g., "rating out of 20", "scale from 1-10", "rate 1-7")
+  * Use exactly the specified number of rating points when a scale is mentioned
+  * If user doesn't specify a specific rating scale, use 5 stars as the default
+  * Implement the appropriate UI based on scale size:
+    - For scales 1-10: Use star, heart, or similar icon-based rating system
+    - For larger scales (>10): Use a slider with visible tick marks and value display
+  * Ensure each rating point/value is individually selectable
+  * Properly capture and store the selected rating value
+  * Add visual feedback (color change, animation) when ratings are selected
+  * Handle hover states to preview potential selections
+  * Implement responsive behavior for all screen sizes
+  * Test thoroughly to ensure the selected value is correctly captured
+
+- Include visual elements like icons from Font Awesome or Material Icons for better UX
+- Use a modern Vietnamese-compatible font like 'Montserrat', 'Nunito', or 'Roboto'
+- Design the submit button with a gradient background and hover animation
+- Add a decorative header section with a subtle pattern or gradient background
+- Implement proper spacing using a consistent rhythm (8px multipliers for margins/padding)
+- Enhance mobile responsiveness with media queries for different device sizes
+- Add subtle background patterns or textures to add depth
+- Use CSS variables for consistent color application throughout the form
+
+JAVASCRIPT IMPLEMENTATION REQUIREMENTS:
+Include this exact JavaScript functionality in the HTML:
+
+```javascript
+// Automatically load data when page loads
+document.addEventListener('DOMContentLoaded', function() {{
+    fetchDataFromAPI();
+}});
+
+async function fetchDataFromAPI() {{
+    const loadingSpinner = document.getElementById('loadingSpinner');
+    const messageDiv = document.getElementById('messageDiv');
+    
+    // Show loading state
+    if (loadingSpinner) loadingSpinner.style.display = 'inline-block';
+    
+    try {{
+        const response = await fetch('{api_endpoint}');
+        const result = await response.json();
+        
+        if (result.success && result.data) {{
+            // Populate form fields with data
+            const formData = result.data;
+            
+            // Iterate through all form inputs
+            const form = document.querySelector('form');
+            const inputs = form.querySelectorAll('input, select, textarea');
+            
+            inputs.forEach(input => {{
+                const fieldName = input.name;
+                if (formData.hasOwnProperty(fieldName)) {{
+                    let value = formData[fieldName];
+                    
+                    // Convert Vietnamese date format (DD/MM/YYYY) to ISO format (YYYY-MM-DD) for date inputs
+                    if (input.type === 'date' && value) {{
+                        const dateMatch = value.match(/^(\d{{2}})\/(\d{{2}})\/(\d{{4}})$/);
+                        if (dateMatch) {{
+                            const [, day, month, year] = dateMatch;
+                            value = `${{year}}-${{month}}-${{day}}`;
+                        }}
+                    }}
+                    
+                    if (input.type === 'radio') {{
+                        if (input.value === value.toString()) {{
+                            input.checked = true;
+                        }}
+                    }} else if (input.type === 'checkbox') {{
+                        input.checked = Boolean(value);
+                    }} else if (input.tagName === 'SELECT') {{
+                        input.value = value;
+                    }} else {{
+                        input.value = value;
+                    }}
+                }}
+            }});
+            
+            showMessage('Dữ liệu đã được tải thành công!', 'success');
+        }} else {{
+            showMessage('Không thể tải dữ liệu từ API', 'error');
+        }}
+    }} catch (error) {{
+        console.error('Error fetching data:', error);
+        showMessage('Lỗi kết nối đến API: ' + error.message, 'error');
+    }} finally {{
+        // Hide loading spinner
+        if (loadingSpinner) loadingSpinner.style.display = 'none';
+    }}
+}}
+
+function showMessage(message, type) {{
+    const messageDiv = document.getElementById('messageDiv');
+    messageDiv.textContent = message;
+    messageDiv.className = type === 'success' ? 'success-message' : 'error-message';
+    messageDiv.style.display = 'block';
+    
+    // Hide message after 5 seconds
+    setTimeout(() => {{
+        messageDiv.style.display = 'none';
+    }}, 5000);
+}}
+```
+
+OUTPUT FORMAT:
+Please provide your response in this exact format:
+
+```html
+[Complete HTML content here]
+```
+
+```json
+[Complete specs.json content here]
+```
+
+IMPLEMENTATION VERIFICATION REQUIREMENTS:
+- Confirm all fields have the specified styling applied
+- Verify all interactive behaviors work correctly
+- Test form validation for all field types
+- Ensure all animations and transitions function as expected
+- Check that the form renders properly on different screen sizes
+- Verify that all rating systems are fully functional with the EXACT number of rating points specified in the field description
+- Test all validation rules with both valid and invalid inputs
+- Ensure specs.json contains ALL form fields with correct metadata 

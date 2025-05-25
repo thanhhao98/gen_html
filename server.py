@@ -43,7 +43,7 @@ def create_template():
     
     # Generate HTML using LLM based on custom fields
     try:
-        generated_content = generate_html_from_custom_fields(custom_fields)
+        generated_content = generate_html_from_custom_fields(custom_fields, template_name)
         if not generated_content or 'html' not in generated_content:
             return render_template('home.html',
                                   message="Failed to generate HTML content",

@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, request
+from flask_cors import CORS
 import json
 import random
 import os
@@ -14,6 +15,9 @@ load_dotenv()
 app = Flask(__name__)
 app.config['JSON_AS_ASCII'] = False
 
+# Enable CORS for all routes
+CORS(app, origins=['http://127.0.0.1:5000', 'http://localhost:5000'])
+
 # Initialize Faker with Vietnamese locale
 fake = Faker('vi_VN')
 
@@ -21,6 +25,34 @@ fake = Faker('vi_VN')
 client = OpenAI(
     api_key=os.getenv('OPENAI_API_KEY')
 )
+
+def format_datetime_vietnamese(dt=None):
+    """
+    Format datetime in Vietnamese format (DD/MM/YYYY HH:MM:SS)
+    
+    Args:
+        dt (datetime, optional): Datetime object to format. Defaults to current time.
+    
+    Returns:
+        str: Formatted datetime string
+    """
+    if dt is None:
+        dt = datetime.now()
+    return dt.strftime('%d/%m/%Y %H:%M:%S')
+
+def format_date_vietnamese(dt=None):
+    """
+    Format date in Vietnamese format (DD/MM/YYYY)
+    
+    Args:
+        dt (datetime, optional): Datetime object to format. Defaults to current time.
+    
+    Returns:
+        str: Formatted date string
+    """
+    if dt is None:
+        dt = datetime.now()
+    return dt.strftime('%d/%m/%Y')
 
 def generate_mock_data_with_llm(field_specs):
     """
@@ -47,7 +79,9 @@ Requirements:
 - Use Vietnamese names, addresses, and context where appropriate
 - For phone numbers, use Vietnamese format (10 digits starting with 0)
 - For emails, use realistic Vietnamese email addresses
-- For dates, use DD/MM/YYYY format
+- For ALL date and datetime fields, ALWAYS use DD/MM/YYYY format (e.g., "15/03/1990", "25/12/1985")
+- NEVER use YYYY-MM-DD, MM/DD/YYYY, or any other date format
+- For datetime fields that need time, use DD/MM/YYYY HH:MM:SS format (e.g., "15/03/1990 14:30:00")
 - For ratings, use numbers 1-5
 - For select fields, choose appropriate Vietnamese options based on field name
 - For text areas, write in Vietnamese
@@ -56,13 +90,15 @@ Requirements:
 Example format:
 {{
     "field_name1": "value1",
-    "field_name2": "value2"
+    "field_name2": "value2",
+    "date_field": "15/03/1990",
+    "datetime_field": "25/12/1985 10:30:00"
 }}"""
 
         response = client.chat.completions.create(
             model="gpt-4o",
             messages=[
-                {"role": "system", "content": "You are a helpful assistant that generates realistic Vietnamese mock data for forms. Always respond with valid JSON only."},
+                {"role": "system", "content": "You are a helpful assistant that generates realistic Vietnamese mock data for forms. Always respond with valid JSON only. IMPORTANT: For all date fields, use DD/MM/YYYY format (never YYYY-MM-DD or MM/DD/YYYY)."},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.7,
@@ -79,6 +115,52 @@ Example format:
             response_text = response_text[:-3]
         
         mock_data = json.loads(response_text)
+        
+        # Post-process to ensure date fields are in DD/MM/YYYY format
+        for field_spec in field_specs:
+            field_name = field_spec['ten_field']
+            field_type = field_spec['kieu_du_lieu']
+            
+            if field_type in ['date', 'datetime'] and field_name in mock_data:
+                date_value = mock_data[field_name]
+                # Try to parse and reformat if it's not in correct format
+                try:
+                    if field_type == 'datetime':
+                        # First try DD/MM/YYYY HH:MM:SS format
+                        parsed_date = datetime.strptime(str(date_value), '%d/%m/%Y %H:%M:%S')
+                        mock_data[field_name] = format_datetime_vietnamese(parsed_date)
+                    else:
+                        # First try DD/MM/YYYY format for date fields
+                        parsed_date = datetime.strptime(str(date_value), '%d/%m/%Y')
+                        mock_data[field_name] = format_date_vietnamese(parsed_date)
+                except ValueError:
+                    try:
+                        if field_type == 'datetime':
+                            # Try ISO format and convert to Vietnamese datetime
+                            parsed_date = datetime.fromisoformat(str(date_value).replace('Z', '+00:00'))
+                            mock_data[field_name] = format_datetime_vietnamese(parsed_date)
+                        else:
+                            # Try YYYY-MM-DD format and convert to Vietnamese date
+                            parsed_date = datetime.strptime(str(date_value), '%Y-%m-%d')
+                            mock_data[field_name] = format_date_vietnamese(parsed_date)
+                    except ValueError:
+                        try:
+                            # Try MM/DD/YYYY format and convert
+                            parsed_date = datetime.strptime(str(date_value), '%m/%d/%Y')
+                            if field_type == 'datetime':
+                                mock_data[field_name] = format_datetime_vietnamese(parsed_date)
+                            else:
+                                mock_data[field_name] = format_date_vietnamese(parsed_date)
+                        except ValueError:
+                            # If all parsing fails, use fallback
+                            start_date = datetime(1970, 1, 1)
+                            end_date = datetime(2005, 12, 31)
+                            random_date = start_date + timedelta(days=random.randint(0, (end_date - start_date).days))
+                            if field_type == 'datetime':
+                                mock_data[field_name] = format_datetime_vietnamese(random_date)
+                            else:
+                                mock_data[field_name] = format_date_vietnamese(random_date)
+        
         return mock_data
         
     except Exception as e:
@@ -109,7 +191,22 @@ def generate_fallback_mock_data(field_specs):
         elif field_type == 'email':
             mock_data[field_name] = "example@email.com"
         elif field_type == 'date':
-            mock_data[field_name] = "01/01/1990"
+            # Generate random date between 1970 and 2005 in DD/MM/YYYY format
+            start_date = datetime(1970, 1, 1)
+            end_date = datetime(2005, 12, 31)
+            random_date = start_date + timedelta(days=random.randint(0, (end_date - start_date).days))
+            mock_data[field_name] = format_date_vietnamese(random_date)
+        elif field_type == 'datetime':
+            # Generate random datetime between 1970 and 2005 in DD/MM/YYYY HH:MM:SS format
+            start_date = datetime(1970, 1, 1)
+            end_date = datetime(2005, 12, 31)
+            random_date = start_date + timedelta(days=random.randint(0, (end_date - start_date).days))
+            # Add random time
+            random_hour = random.randint(0, 23)
+            random_minute = random.randint(0, 59)
+            random_second = random.randint(0, 59)
+            random_datetime = random_date.replace(hour=random_hour, minute=random_minute, second=random_second)
+            mock_data[field_name] = format_datetime_vietnamese(random_datetime)
         elif field_type == 'rating':
             mock_data[field_name] = 3
         elif field_type == 'number':
@@ -303,6 +400,20 @@ def mock_submit(template_name):
                             validation_errors.append(f"Rating must be between 1-5: {field_name}")
                     except ValueError:
                         validation_errors.append(f"Rating must be a number: {field_name}")
+                
+                elif field_type == 'date' and value:
+                    try:
+                        # Validate DD/MM/YYYY format
+                        datetime.strptime(str(value), '%d/%m/%Y')
+                    except ValueError:
+                        validation_errors.append(f"Invalid date format, must be DD/MM/YYYY: {field_name}")
+                
+                elif field_type == 'datetime' and value:
+                    try:
+                        # Validate DD/MM/YYYY HH:MM:SS format
+                        datetime.strptime(str(value), '%d/%m/%Y %H:%M:%S')
+                    except ValueError:
+                        validation_errors.append(f"Invalid datetime format, must be DD/MM/YYYY HH:MM:SS: {field_name}")
         
         # Simulate processing time
         import time
@@ -320,7 +431,7 @@ def mock_submit(template_name):
                 'success': True,
                 'message': 'Form submitted successfully',
                 'submission_id': f"SUB_{random.randint(100000, 999999)}",
-                'timestamp': datetime.now().isoformat(),
+                'timestamp': format_datetime_vietnamese(),
                 'submitted_data': submitted_data
             })
     
@@ -336,7 +447,7 @@ def health_check():
     return jsonify({
         'status': 'healthy',
         'service': 'Mocking API',
-        'timestamp': datetime.now().isoformat()
+        'timestamp': format_datetime_vietnamese()
     })
 
 if __name__ == '__main__':

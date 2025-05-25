@@ -1,5 +1,6 @@
 from dotenv import load_dotenv
 import os
+from jinja2 import Template
 
 # Load environment variables from .env file
 load_dotenv()
@@ -12,12 +13,13 @@ from openai import OpenAI
 # Initialize the OpenAI client
 client = OpenAI(api_key=openai_api_key)
 
-def generate_html_from_custom_fields(custom_fields):
+def generate_html_from_custom_fields(custom_fields, template_name=None):
     """
     Generates HTML table structure and specs.json based on provided custom field information.
     
     Args:
         custom_fields (str): A string containing field definitions provided by the user
+        template_name (str): The template name to use for API calls
     
     Returns:
         dict: Dictionary containing 'html' and 'specs' content, or None if error
@@ -51,173 +53,49 @@ def generate_html_from_custom_fields(custom_fields):
         print(f"Error loading form title: {str(e)}. Using default title.")
         form_title = "Form lấy ý kiến khách hàng"
     
-    # Create prompt for GPT-4o
-    prompt = f"""
-    Generate TWO outputs:
+    # Read and prepare API fetch data template
+    api_endpoint = ""
+    if template_name:
+        try:
+            with open('default_fetch_data.txt', 'r', encoding='utf-8') as f:
+                fetch_data_content = f.read().strip()
+            
+            # Extract the API endpoint from the curl command
+            lines = fetch_data_content.split('\n')
+            curl_line = lines[0]  # First line contains the curl command
+            
+            # Use Jinja2 to render the template_name in the API endpoint
+            template = Template(curl_line)
+            rendered_curl = template.render(template_name=template_name)
+            
+            # Extract just the URL from the curl command
+            import re
+            url_match = re.search(r'"([^"]*)"', rendered_curl)
+            if url_match:
+                api_endpoint = url_match.group(1)
+                print(f"Generated API endpoint: {api_endpoint}")
+            
+        except Exception as e:
+            print(f"Error loading fetch data template: {str(e)}")
+            api_endpoint = ""
     
-    1. A standalone HTML file with embedded CSS and JavaScript that includes:
+    # Read prompt template from external file
+    try:
+        with open('prompt_template.txt', 'r', encoding='utf-8') as f:
+            prompt_template = f.read().strip()
+        print(f"Successfully loaded prompt template ({len(prompt_template)} characters)")
+    except Exception as e:
+        print(f"Error loading prompt template: {str(e)}")
+        return None
     
-    - A form with a table structure containing the following default fields:
-    {default_field_definitions}
-    
-    - Also include these custom fields defined in Vietnamese (interpret them intelligently even if the descriptions are brief):
-    {custom_fields}
-    
-    - A submit button that implements this functionality:
-    {submit_functionality}
-    
-    - Use this exact title for the form (as an h1 element):
-    {form_title}
-    
-    2. A JSON specification file (specs.json) containing field metadata in this exact format:
-    [
-        {{"ten_hien_thi":"Display Name in Vietnamese","ten_field":"field_name_snake_case","kieu_du_lieu":"field_type"}},
-        // ... more fields
-    ]
-    
-    For the specs.json file:
-    - "ten_hien_thi": The display name exactly as it appears in Vietnamese on the form
-    - "ten_field": Snake_case field name that matches the HTML input name attribute
-    - "kieu_du_lieu": Field type - use these values:
-      * "text" for text inputs
-      * "tel" for phone number inputs  
-      * "email" for email inputs
-      * "date" for date inputs
-      * "select" for dropdown/select inputs
-      * "textarea" for large text areas
-      * "rating" for rating/satisfaction fields
-      * "number" for numeric inputs
-      * "checkbox" for checkbox inputs
-      * "radio" for radio button inputs
-    
-    Include ALL fields (both default and custom) in the specs.json array.
-    
-    IMPORTANT INTERPRETATION GUIDELINES:
-    - For the custom fields in Vietnamese, be flexible and interpret the meaning even if descriptions are minimal
-    - Infer the appropriate input type based on the field description
-    - For rating scales, use appropriate UI elements like star ratings or slider inputs
-    - For text inputs accepting detailed feedback, provide appropriate textarea elements
-    - Match field names intelligently with their likely purpose in the submission function
-    - EVERY field must have appropriate styling and behavior specific to its type
-    
-    IMPORTANT REQUIREMENTS:
-    
-    - The HTML document should use Vietnamese language for all text, labels, placeholders, error messages, and button text
-    - Set the language attribute to Vietnamese (vi) in the HTML tag
-    - Use proper Vietnamese character encoding (UTF-8)
-    - For validation:
-      * Phone numbers should follow Vietnamese format (10 digits, typically starting with 03, 05, 07, 08, 09)
-      * Date formats should follow Vietnamese convention (DD/MM/YYYY)
-      * Error messages must be in Vietnamese
-    
-    DESIGN REQUIREMENTS:
-    - Create a premium, modern UI with a professional design suitable for enterprise applications
-    - Use a visually appealing color palette with a primary brand color and complementary accent colors
-    - Implement a card-based design with elegant shadows (box-shadow: 0 10px 25px rgba(0,0,0,0.1))
-    - Use modern CSS techniques including:
-      * Subtle gradients for buttons and backgrounds
-      * Border-radius of 8-12px for components
-      * Variable font weights for better typography
-      * CSS Grid or Flexbox for responsive layouts
-    - Add sophisticated animations and transitions:
-      * Smooth hover effects on all interactive elements (transform: scale(1.02), transition: 0.3s ease)
-      * Loading/success animations for form submission
-      * Subtle micro-interactions (focus states, validation feedback)
-    - Implement modern form elements:
-      * Custom-styled checkboxes and radio buttons
-      * Elegant dropdown menus with custom styling
-      * Placeholder animations for text inputs
-      * Clean, accessible form validation with visual feedback
-    
-    FIELD-SPECIFIC STYLING AND BEHAVIOR REQUIREMENTS:
-    - Text inputs:
-      * Apply consistent padding (12px), border-radius, and subtle border
-      * Include focus animation (border color change, subtle glow effect)
-      * Add floating or animated labels/placeholders
-      * Implement real-time validation with visual feedback
-    
-    - Textarea elements:
-      * Auto-resize based on content (or set appropriate min/max height)
-      * Line height and padding optimized for readability
-      * Character/word count display when appropriate
-      * Smooth focus transitions
-    
-    - Dropdown selects:
-      * Custom arrow indicator for dropdown
-      * Styled dropdown menu with hover effects
-      * Properly aligned and consistent with other form elements
-      * Animated dropdown expansion/collapse
-    
-    - Checkboxes and radio buttons:
-      * Replace default styling with custom visuals (maintain accessibility)
-      * Clear visual distinction between checked/unchecked states
-      * Smooth transition animations between states
-      * Adequate spacing and touch targets for mobile
-    
-    - Date inputs:
-      * Formatted according to Vietnamese convention (DD/MM/YYYY)
-      * Custom datepicker styling that matches overall design
-      * Calendar popup with elegant animations
-      * Pre-validation to ensure correct date format
-    
-    - Number inputs:
-      * Custom styled increment/decrement buttons
-      * Input validation for numeric values
-      * Appropriate min/max constraints where logical
-      * Proper formatting for currency or percentage values if applicable
-    
-    - Email/Phone inputs:
-      * Field-specific validation (email format, Vietnamese phone format)
-      * Visual indicators for validation status
-      * Appropriate keyboard type on mobile devices
-      * Helpful error messages in Vietnamese for invalid inputs
-
-    RATING IMPLEMENTATION REQUIREMENTS:
-    - For any rating or satisfaction fields (like "Độ hài lòng của khách hàng" or similar):
-      * Always parse the field description to identify any specified rating scale (e.g., "rating out of 20", "scale from 1-10", "rate 1-7")
-      * Use exactly the specified number of rating points when a scale is mentioned
-      * If user doesn't specify a specific rating scale, use 5 stars as the default
-      * Implement the appropriate UI based on scale size:
-        - For scales 1-10: Use star, heart, or similar icon-based rating system
-        - For larger scales (>10): Use a slider with visible tick marks and value display
-      * Ensure each rating point/value is individually selectable
-      * Properly capture and store the selected rating value
-      * Add visual feedback (color change, animation) when ratings are selected
-      * Handle hover states to preview potential selections
-      * Implement responsive behavior for all screen sizes
-      * Test thoroughly to ensure the selected value is correctly captured
-
-    
-    - Include visual elements like icons from Font Awesome or Material Icons for better UX
-    - Use a modern Vietnamese-compatible font like 'Montserrat', 'Nunito', or 'Roboto'
-    - Design the submit button with a gradient background and hover animation
-    - Add a decorative header section with a subtle pattern or gradient background
-    - Implement proper spacing using a consistent rhythm (8px multipliers for margins/padding)
-    - Enhance mobile responsiveness with media queries for different device sizes
-    - Add subtle background patterns or textures to add depth
-    - Use CSS variables for consistent color application throughout the form
-    
-    OUTPUT FORMAT:
-    Please provide your response in this exact format:
-    
-    ```html
-    [Complete HTML content here]
-    ```
-    
-    ```json
-    [Complete specs.json content here]
-    ```
-    
-    IMPLEMENTATION VERIFICATION REQUIREMENTS:
-    - Confirm all fields have the specified styling applied
-    - Verify all interactive behaviors work correctly
-    - Test form validation for all field types
-    - Ensure all animations and transitions function as expected
-    - Check that the form renders properly on different screen sizes
-    - Verify that all rating systems are fully functional with the EXACT number of rating points specified in the field description
-    - Test all validation rules with both valid and invalid inputs
-    - Ensure specs.json contains ALL form fields with correct metadata
-    """
+    # Create prompt for GPT-4o by formatting the template
+    prompt = prompt_template.format(
+        default_field_definitions=default_field_definitions,
+        custom_fields=custom_fields,
+        submit_functionality=submit_functionality,
+        form_title=form_title,
+        api_endpoint=api_endpoint if api_endpoint else "No API endpoint provided"
+    )
     
     print(f"Prepared prompt for GPT-4o ({len(prompt)} characters)")
     
@@ -285,7 +163,7 @@ def generate_html_table():
             custom_field_definitions = f.read().strip()
     
     # Generate content using the new function
-    generated_content = generate_html_from_custom_fields(custom_field_definitions)
+    generated_content = generate_html_from_custom_fields(custom_field_definitions, "default_template")
     
     if generated_content and 'html' in generated_content:
         # Save HTML to file
