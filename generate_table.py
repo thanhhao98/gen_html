@@ -276,10 +276,66 @@ def generate_html_from_custom_fields(custom_fields, template_name=None):
     
     # STEP 2: Generate JavaScript based on actual HTML structure
     try:
-        print("Generating JavaScript using fallback method...")
+        print("Making second API call to OpenAI for JavaScript generation...")
         
-        # Use fallback JavaScript directly since LLM generation is unreliable
-        js_content = generate_fallback_javascript(api_endpoint)
+        # Read JavaScript generation prompt template
+        try:
+            with open('javascript_generation_prompt.txt', 'r', encoding='utf-8') as f:
+                js_prompt_template = f.read().strip()
+            print(f"Successfully loaded JavaScript prompt template ({len(js_prompt_template)} characters)")
+        except Exception as e:
+            print(f"Error loading JavaScript prompt template: {str(e)}")
+            # Use fallback if prompt template fails
+            print("Using fallback JavaScript due to prompt template error...")
+            js_content = generate_fallback_javascript(api_endpoint)
+        else:
+            # Create JavaScript generation prompt
+            js_prompt = js_prompt_template.format(
+                api_endpoint=api_endpoint if api_endpoint else "No API endpoint provided",
+                html_content=html_content
+            )
+            
+            js_response = client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {"role": "system", "content": "You are a JavaScript expert. You MUST generate COMPLETE JavaScript code, not fragments. Always include all necessary functions and complete all code blocks."},
+                    {"role": "user", "content": js_prompt}
+                ],
+                temperature=0.1,
+                max_tokens=4000,  # Increased token limit
+                presence_penalty=0.0,
+                frequency_penalty=0.0,
+                top_p=0.9
+            )
+            
+            print(f"Received JavaScript response from OpenAI (length: {len(js_response.choices[0].message.content)} characters)")
+            
+            js_content = js_response.choices[0].message.content.strip()
+            
+            # Debug: Print the raw response
+            print(f"Raw JavaScript response (first 200 chars): '{js_content[:200]}'")
+            
+            # Extract JavaScript from markdown if present
+            if "```javascript" in js_content:
+                js_content = js_content.split("```javascript")[1].split("```")[0].strip()
+                print("Extracted JavaScript from ```javascript``` block")
+            elif "```js" in js_content:
+                js_content = js_content.split("```js")[1].split("```")[0].strip()
+                print("Extracted JavaScript from ```js``` block")
+            else:
+                print("No markdown code blocks found, using raw content")
+            
+            # Debug: Print the extracted content
+            print(f"Extracted JavaScript content (first 200 chars): '{js_content[:200]}'")
+            
+            # Validate JavaScript content
+            if not js_content or len(js_content) < 50:
+                print("Warning: Generated JavaScript content is too short or empty")
+                print(f"JavaScript content: '{js_content}'")
+                
+                # Generate fallback JavaScript
+                print("Generating fallback JavaScript due to incomplete LLM response...")
+                js_content = generate_fallback_javascript(api_endpoint)
         
         # Insert JavaScript into HTML
         if js_content:
@@ -299,11 +355,46 @@ def generate_html_from_custom_fields(custom_fields, template_name=None):
 """
             print("Successfully integrated JavaScript into HTML")
         else:
-            print("Warning: No JavaScript content available")
+            print("Warning: No JavaScript content available, using fallback")
+            # Use fallback JavaScript
+            fallback_js = generate_fallback_javascript(api_endpoint)
+            if "</body>" in html_content:
+                html_content = html_content.replace("</body>", f"""
+    <script>
+{fallback_js}
+    </script>
+</body>""")
+            else:
+                html_content += f"""
+    <script>
+{fallback_js}
+    </script>
+"""
+            print("Successfully integrated fallback JavaScript into HTML")
             
     except Exception as e:
         print(f"Error generating JavaScript content: {str(e)}")
-        # Continue with HTML only if JavaScript generation fails
+        print("Using fallback JavaScript due to LLM generation error...")
+        
+        # Use fallback JavaScript if generation fails
+        try:
+            fallback_js = generate_fallback_javascript(api_endpoint)
+            if "</body>" in html_content:
+                html_content = html_content.replace("</body>", f"""
+    <script>
+{fallback_js}
+    </script>
+</body>""")
+            else:
+                html_content += f"""
+    <script>
+{fallback_js}
+    </script>
+"""
+            print("Successfully integrated fallback JavaScript into HTML")
+        except Exception as fallback_error:
+            print(f"Error generating fallback JavaScript: {str(fallback_error)}")
+            # Continue with HTML only if both fail
     
     if html_content and specs_content:
         print(f"Successfully generated HTML content ({len(html_content)} characters)")
