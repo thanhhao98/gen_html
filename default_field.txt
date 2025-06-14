@@ -2,3 +2,4 @@ full_name: text input for collecting customer's full name
 phone_number: phone input with validation for proper phone number format
 dob: date input with calendar dropdown, format: DD-MM-YYYY
 gender: select box with two options are F and M
+status of survey: select box with two options {status_survey}

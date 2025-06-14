@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
 import os
 from jinja2 import Template
+import requests
 
 # Load environment variables from .env file
 load_dotenv()
@@ -12,6 +13,34 @@ from openai import OpenAI
 
 # Initialize the OpenAI client
 client = OpenAI(api_key=openai_api_key)
+
+def fetch_options_from_api():
+    """
+    Fetch options from the options API
+    """
+    try:
+        response = requests.get('http://localhost:6000/api/options')
+        if response.status_code == 200:
+            data = response.json()
+            if data.get('success') and data.get('data'):
+                return data['data']
+        print(f"Failed to fetch options: {response.status_code} - {response.text}")
+        return []
+    except Exception as e:
+        print(f"Error fetching options from API: {str(e)}")
+        return []
+
+def replace_options_placeholder(field_definitions, options):
+    """
+    Replace {status_survey} placeholder with actual options from API
+    """
+    if not options:
+        # If no options available, use default fallback
+        return field_definitions.replace("{status_survey}", "Active, Inactive")
+    
+    # Format options for select box
+    options_text = ", ".join(options)
+    return field_definitions.replace("{status_survey}", options_text)
 
 def generate_fallback_javascript(api_endpoint):
     """
@@ -161,11 +190,21 @@ def generate_html_from_custom_fields(custom_fields, template_name=None):
     """
     print(f"Starting HTML generation with custom fields: {custom_fields[:100]}...")
     
+    # Fetch options from API
+    print("Fetching options from API...")
+    options = fetch_options_from_api()
+    print(f"Fetched options: {options}")
+    
     # Read default field definitions from default_field.txt
     try:
         with open('default_field.txt', 'r') as f:
             default_field_definitions = f.read().strip()
         print(f"Successfully loaded default field definitions ({len(default_field_definitions)} characters)")
+        
+        # Replace options placeholder with actual options from API
+        default_field_definitions = replace_options_placeholder(default_field_definitions, options)
+        print(f"Updated field definitions with options: {default_field_definitions}")
+        
     except Exception as e:
         print(f"Error loading default field definitions: {str(e)}")
         return None
