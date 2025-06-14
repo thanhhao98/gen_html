@@ -256,6 +256,7 @@ def get_mock_data(template_name):
         if count == 1:
             # Generate single record using LLM
             mock_data = generate_mock_data_with_llm(specs)
+            print(mock_data)
             
             return jsonify({
                 'success': True,

@@ -224,7 +224,30 @@ async function fetchDataFromAPI() {{
                     }} else if (input.type === 'checkbox') {{
                         input.checked = Boolean(value);
                     }} else if (input.tagName === 'SELECT') {{
-                        input.value = value;
+                        // Handle select elements with Vietnamese value mapping
+                        if (fieldName === 'gender') {{
+                            // Map Vietnamese gender values to option values
+                            if (value === 'Nam') {{
+                                input.value = 'M';
+                            }} else if (value === 'Nữ') {{
+                                input.value = 'F';
+                            }} else {{
+                                input.value = value;
+                            }}
+                        }} else {{
+                            // For other select elements, try to find matching option text
+                            const options = input.querySelectorAll('option');
+                            let found = false;
+                            options.forEach(option => {{
+                                if (option.textContent.trim() === value || option.value === value) {{
+                                    input.value = option.value;
+                                    found = true;
+                                }}
+                            }});
+                            if (!found) {{
+                                input.value = value;
+                            }}
+                        }}
                     }} else {{
                         input.value = value;
                     }}
