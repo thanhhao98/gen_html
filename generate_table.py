@@ -13,9 +13,144 @@ from openai import OpenAI
 # Initialize the OpenAI client
 client = OpenAI(api_key=openai_api_key)
 
+def generate_fallback_javascript(api_endpoint):
+    """
+    Generate fallback JavaScript when LLM generation fails
+    """
+    return f"""
+// Automatically load data when page loads
+document.addEventListener('DOMContentLoaded', function() {{
+    try {{
+        const flag = window.parent.document.body
+                       .querySelector('#outside_type')
+                       .textContent;
+        if (flag === 'Template') return;
+    }} catch (error) {{
+        // If parent window or element doesn't exist, continue with API call
+        console.log('Parent window check failed, proceeding with API call');
+    }}
+    fetchDataFromAPI();
+}});
+
+async function fetchDataFromAPI() {{
+    const loadingSpinner = document.getElementById('loadingSpinner');
+    const messageDiv = document.getElementById('messageDiv');
+    
+    // Show loading state
+    if (loadingSpinner) loadingSpinner.style.display = 'inline-block';
+    
+    try {{
+        const response = await fetch('{api_endpoint}');
+        const result = await response.json();
+        
+        if (result.success && result.data) {{
+            // Populate form fields with data
+            const formData = result.data;
+            
+            // Iterate through all form inputs
+            const form = document.querySelector('form');
+            const inputs = form.querySelectorAll('input, select, textarea');
+            
+            inputs.forEach(input => {{
+                const fieldName = input.name;
+                if (formData.hasOwnProperty(fieldName)) {{
+                    let value = formData[fieldName];
+                    
+                    // Convert Vietnamese date format (DD/MM/YYYY) to ISO format (YYYY-MM-DD) for date inputs
+                    if (input.type === 'date' && value) {{
+                        const dateMatch = value.match(/^(\\d{{2}})\\/(\\d{{2}})\\/(\\d{{4}})$/);
+                        if (dateMatch) {{
+                            const [, day, month, year] = dateMatch;
+                            value = `${{year}}-${{month}}-${{day}}`;
+                        }}
+                    }}
+                    
+                    if (input.type === 'radio') {{
+                        if (input.value === value.toString()) {{
+                            input.checked = true;
+                        }}
+                    }} else if (input.type === 'checkbox') {{
+                        input.checked = Boolean(value);
+                    }} else if (input.tagName === 'SELECT') {{
+                        // Handle select elements with Vietnamese value mapping
+                        if (fieldName === 'gender') {{
+                            // Map Vietnamese gender values to option values
+                            if (value === 'Nam') {{
+                                input.value = 'M';
+                            }} else if (value === 'Nữ') {{
+                                input.value = 'F';
+                            }} else {{
+                                input.value = value;
+                            }}
+                        }} else {{
+                            // For other select elements, try to find matching option text
+                            const options = input.querySelectorAll('option');
+                            let found = false;
+                            options.forEach(option => {{
+                                if (option.textContent.trim() === value || option.value === value) {{
+                                    input.value = option.value;
+                                    found = true;
+                                }}
+                            }});
+                            if (!found) {{
+                                input.value = value;
+                            }}
+                        }}
+                    }} else {{
+                        input.value = value;
+                    }}
+                }}
+            }});
+            
+            showMessage('Dữ liệu đã được tải thành công!', 'success');
+        }} else {{
+            showMessage('Không thể tải dữ liệu từ API', 'error');
+        }}
+    }} catch (error) {{
+        console.error('Error fetching data:', error);
+        showMessage('Lỗi kết nối đến API: ' + error.message, 'error');
+    }} finally {{
+        // Hide loading spinner
+        if (loadingSpinner) loadingSpinner.style.display = 'none';
+    }}
+}}
+
+function showMessage(message, type) {{
+    const messageDiv = document.getElementById('messageDiv');
+    messageDiv.textContent = message;
+    messageDiv.className = type === 'success' ? 'success-message' : 'error-message';
+    messageDiv.style.display = 'block';
+    
+    // Hide message after 5 seconds
+    setTimeout(() => {{
+        messageDiv.style.display = 'none';
+    }}, 5000);
+}}
+
+// Form submission functionality
+document.addEventListener('DOMContentLoaded', function() {{
+    const submitBtn = document.querySelector('button[type="button"]');
+    if (submitBtn) {{
+        submitBtn.addEventListener('click', function() {{
+            const form = document.querySelector('form');
+            const formData = new FormData(form);
+            const dataObject = {{}};
+            
+            formData.forEach((value, key) => {{
+                dataObject[key] = value;
+            }});
+            
+            console.log('Form data:', dataObject);
+            showMessage('Form đã được gửi thành công!', 'success');
+        }});
+    }}
+}});
+"""
+
 def generate_html_from_custom_fields(custom_fields, template_name=None):
     """
     Generates HTML table structure and specs.json based on provided custom field information.
+    Uses a two-step approach: first generate HTML, then generate JavaScript based on actual HTML structure.
     
     Args:
         custom_fields (str): A string containing field definitions provided by the user
@@ -79,17 +214,17 @@ def generate_html_from_custom_fields(custom_fields, template_name=None):
             print(f"Error loading fetch data template: {str(e)}")
             api_endpoint = ""
     
-    # Read prompt template from external file
+    # Read HTML generation prompt template from external file
     try:
         with open('prompt_template.txt', 'r', encoding='utf-8') as f:
-            prompt_template = f.read().strip()
-        print(f"Successfully loaded prompt template ({len(prompt_template)} characters)")
+            html_prompt_template = f.read().strip()
+        print(f"Successfully loaded HTML prompt template ({len(html_prompt_template)} characters)")
     except Exception as e:
-        print(f"Error loading prompt template: {str(e)}")
+        print(f"Error loading HTML prompt template: {str(e)}")
         return None
     
-    # Create prompt for GPT-4o by formatting the template
-    prompt = prompt_template.format(
+    # Create prompt for HTML generation
+    html_prompt = html_prompt_template.format(
         default_field_definitions=default_field_definitions,
         custom_fields=custom_fields,
         submit_functionality=submit_functionality,
@@ -97,24 +232,23 @@ def generate_html_from_custom_fields(custom_fields, template_name=None):
         api_endpoint=api_endpoint if api_endpoint else "No API endpoint provided"
     )
     
-    print(f"Prepared prompt for GPT-4o ({len(prompt)} characters)")
+    print(f"Prepared HTML prompt for GPT-4o ({len(html_prompt)} characters)")
     
-    # Generate HTML using GPT-4o
+    # STEP 1: Generate HTML using GPT-4o
     try:
-        print("Making API call to OpenAI...")
-        print(prompt)
+        print("Making first API call to OpenAI for HTML generation...")
         response = client.chat.completions.create(
             model="gpt-4o",
             messages=[
-                {"role": "user", "content": prompt}
+                {"role": "user", "content": html_prompt}
             ],
-            temperature=0.2, # Lower temperature for more consistent outputs
+            temperature=0.2,
             max_tokens=10000,
-            presence_penalty=0.0, # Neutral presence penalty
-            frequency_penalty=0.0, # Neutral frequency penalty
-            top_p=0.9 # Slightly constrained sampling for consistency
+            presence_penalty=0.0,
+            frequency_penalty=0.0,
+            top_p=0.9
         )
-        print(f"Received response from OpenAI (length: {len(response.choices[0].message.content)} characters)")
+        print(f"Received HTML response from OpenAI (length: {len(response.choices[0].message.content)} characters)")
         
         full_content = response.choices[0].message.content
         
@@ -132,19 +266,54 @@ def generate_html_from_custom_fields(custom_fields, template_name=None):
             specs_content = json_section
             print("Extracted JSON content from markdown code block")
         
-        if html_content and specs_content:
-            print(f"Successfully generated HTML content ({len(html_content)} characters)")
-            print(f"Successfully generated specs content ({len(specs_content)} characters)")
-            return {
-                'html': html_content,
-                'specs': specs_content
-            }
-        else:
-            print("Failed to extract both HTML and JSON content from response")
+        if not html_content:
+            print("Failed to extract HTML content from response")
             return None
-    
+            
     except Exception as e:
-        print(f"Error generating content: {str(e)}")
+        print(f"Error generating HTML content: {str(e)}")
+        return None
+    
+    # STEP 2: Generate JavaScript based on actual HTML structure
+    try:
+        print("Generating JavaScript using fallback method...")
+        
+        # Use fallback JavaScript directly since LLM generation is unreliable
+        js_content = generate_fallback_javascript(api_endpoint)
+        
+        # Insert JavaScript into HTML
+        if js_content:
+            # Find the closing </body> tag and insert JavaScript before it
+            if "</body>" in html_content:
+                html_content = html_content.replace("</body>", f"""
+    <script>
+{js_content}
+    </script>
+</body>""")
+            else:
+                # If no </body> tag, append at the end
+                html_content += f"""
+    <script>
+{js_content}
+    </script>
+"""
+            print("Successfully integrated JavaScript into HTML")
+        else:
+            print("Warning: No JavaScript content available")
+            
+    except Exception as e:
+        print(f"Error generating JavaScript content: {str(e)}")
+        # Continue with HTML only if JavaScript generation fails
+    
+    if html_content and specs_content:
+        print(f"Successfully generated HTML content ({len(html_content)} characters)")
+        print(f"Successfully generated specs content ({len(specs_content)} characters)")
+        return {
+            'html': html_content,
+            'specs': specs_content
+        }
+    else:
+        print("Failed to generate complete content")
         return None
 
 def generate_html_table():

@@ -1,0 +1,127 @@
+Generate complete JavaScript code for this Vietnamese form.
+
+HTML:
+```html
+{html_content}
+```
+
+API: {api_endpoint}
+
+Requirements:
+- Complete JavaScript code (not fragments)
+- Handle all field types in the HTML
+- Vietnamese messages
+- Error handling
+
+Generate this exact JavaScript code, replacing the API endpoint:
+
+```javascript
+document.addEventListener('DOMContentLoaded', function() {
+    fetchDataFromAPI();
+});
+
+async function fetchDataFromAPI() {
+    const loadingSpinner = document.getElementById('loadingSpinner');
+    const messageDiv = document.getElementById('messageDiv');
+    
+    if (loadingSpinner) loadingSpinner.style.display = 'inline-block';
+    
+    try {
+        const response = await fetch('{api_endpoint}');
+        const result = await response.json();
+        
+        if (result.success && result.data) {
+            const formData = result.data;
+            const form = document.querySelector('form');
+            const inputs = form.querySelectorAll('input, select, textarea');
+            
+            inputs.forEach(input => {
+                const fieldName = input.name;
+                if (formData.hasOwnProperty(fieldName)) {
+                    let value = formData[fieldName];
+                    
+                    if (input.type === 'date' && value) {
+                        const dateMatch = value.match(/^(\\d{2})\\/(\\d{2})\\/(\\d{4})$/);
+                        if (dateMatch) {
+                            const [, day, month, year] = dateMatch;
+                            value = `${{year}}-${{month}}-${{day}}`;
+                        }
+                    }
+                    
+                    if (input.type === 'radio') {
+                        if (input.value === value.toString()) {
+                            input.checked = true;
+                        }
+                    } else if (input.type === 'checkbox') {
+                        input.checked = Boolean(value);
+                    } else if (input.tagName === 'SELECT') {
+                        if (fieldName === 'gender') {
+                            if (value === 'Nam') {
+                                input.value = 'M';
+                            } else if (value === 'Nữ') {
+                                input.value = 'F';
+                            } else {
+                                input.value = value;
+                            }
+                        } else {
+                            const options = input.querySelectorAll('option');
+                            let found = false;
+                            options.forEach(option => {
+                                if (option.textContent.trim() === value || option.value === value) {
+                                    input.value = option.value;
+                                    found = true;
+                                }
+                            });
+                            if (!found) {
+                                input.value = value;
+                            }
+                        }
+                    } else {
+                        input.value = value;
+                    }
+                }
+            });
+            
+            showMessage('Dữ liệu đã được tải thành công!', 'success');
+        } else {
+            showMessage('Không thể tải dữ liệu từ API', 'error');
+        }
+    } catch (error) {
+        console.error('Error fetching data:', error);
+        showMessage('Lỗi kết nối đến API: ' + error.message, 'error');
+    } finally {
+        if (loadingSpinner) loadingSpinner.style.display = 'none';
+    }
+}
+
+function showMessage(message, type) {
+    const messageDiv = document.getElementById('messageDiv');
+    messageDiv.textContent = message;
+    messageDiv.className = type === 'success' ? 'success-message' : 'error-message';
+    messageDiv.style.display = 'block';
+    
+    setTimeout(() => {
+        messageDiv.style.display = 'none';
+    }, 5000);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const submitBtn = document.querySelector('button[type="button"]');
+    if (submitBtn) {
+        submitBtn.addEventListener('click', function() {
+            const form = document.querySelector('form');
+            const formData = new FormData(form);
+            const dataObject = {};
+            
+            formData.forEach((value, key) => {
+                dataObject[key] = value;
+            });
+            
+            console.log('Form data:', dataObject);
+            showMessage('Form đã được gửi thành công!', 'success');
+        });
+    }
+});
+```
+
+Return ONLY the JavaScript code above with the API endpoint replaced. 

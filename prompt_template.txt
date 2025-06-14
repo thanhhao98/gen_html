@@ -1,6 +1,6 @@
 Generate TWO outputs:
 
-1. A standalone HTML file with embedded CSS and JavaScript that includes:
+1. A standalone HTML file with embedded CSS that includes:
 
 - A form with a table structure containing the following default fields:
 {default_field_definitions}
@@ -14,20 +14,12 @@ Generate TWO outputs:
 - Use this exact title for the form (as an h1 element):
 {form_title}
 
-- Automatically load data from this API endpoint when the page loads:
-{api_endpoint}
-
 - Add these specific HTML elements:
   * Loading spinner element with id="loadingSpinner" (initially visible during page load)
   * Message display div with id="messageDiv" for success/error messages
   * Style the loading indicator prominently near the top of the form
 
-- When the API endpoint is provided, add JavaScript functionality to:
-  * Automatically make a GET request to the API endpoint when the page loads (using window.onload or DOMContentLoaded)
-  * Parse the JSON response and populate form fields with the data
-  * Handle loading states and error cases
-  * Display success/error messages to the user
-  * Hide the loading spinner once data is loaded or an error occurs
+- IMPORTANT: Do NOT include any JavaScript code in the HTML. JavaScript will be added separately.
 
 2. A JSON specification file (specs.json) containing field metadata in this exact format:
 [
@@ -69,25 +61,6 @@ IMPORTANT REQUIREMENTS:
   * Phone numbers should follow Vietnamese format (10 digits, typically starting with 03, 05, 07, 08, 09)
   * Date formats should follow Vietnamese convention (DD/MM/YYYY)
   * Error messages must be in Vietnamese
-
-API INTEGRATION REQUIREMENTS:
-- Automatically load data from the API when the page loads (no manual button required)
-- Implement JavaScript fetch() to call the API endpoint automatically on page load
-- Show loading spinner/indicator during initial page load and API call
-- On successful API response, automatically populate form fields with returned data from the "data" object
-- Map API response fields to form inputs based on field names (e.g., response.data.full_name -> input[name="full_name"])
-- Handle API errors gracefully with Vietnamese error messages
-- Add visual feedback for successful data loading
-- Hide loading spinner once data is loaded or error occurs
-- Include complete JavaScript code that:
-  * Automatically makes GET request to the API endpoint when page loads (using DOMContentLoaded event)
-  * Parses JSON response and extracts the "data" object
-  * Iterates through all form inputs and populates them if matching field exists in response.data
-  * Handles different input types (text, select, radio, checkbox, textarea, etc.)
-  * Converts Vietnamese date format (DD/MM/YYYY) to ISO format (YYYY-MM-DD) for HTML date inputs
-  * Shows loading state during initial load
-  * Displays success/error messages in Vietnamese
-  * Hides loading spinner after completion
 
 DESIGN REQUIREMENTS:
 - Create a premium, modern UI with a professional design suitable for enterprise applications
@@ -175,116 +148,11 @@ RATING IMPLEMENTATION REQUIREMENTS:
 - Add subtle background patterns or textures to add depth
 - Use CSS variables for consistent color application throughout the form
 
-JAVASCRIPT IMPLEMENTATION REQUIREMENTS:
-Include this exact JavaScript functionality in the HTML:
-
-```javascript
-// Automatically load data when page loads
-document.addEventListener('DOMContentLoaded', function() {{
-    fetchDataFromAPI();
-}});
-
-async function fetchDataFromAPI() {{
-    const loadingSpinner = document.getElementById('loadingSpinner');
-    const messageDiv = document.getElementById('messageDiv');
-    
-    // Show loading state
-    if (loadingSpinner) loadingSpinner.style.display = 'inline-block';
-    
-    try {{
-        const response = await fetch('{api_endpoint}');
-        const result = await response.json();
-        
-        if (result.success && result.data) {{
-            // Populate form fields with data
-            const formData = result.data;
-            
-            // Iterate through all form inputs
-            const form = document.querySelector('form');
-            const inputs = form.querySelectorAll('input, select, textarea');
-            
-            inputs.forEach(input => {{
-                const fieldName = input.name;
-                if (formData.hasOwnProperty(fieldName)) {{
-                    let value = formData[fieldName];
-                    
-                    // Convert Vietnamese date format (DD/MM/YYYY) to ISO format (YYYY-MM-DD) for date inputs
-                    if (input.type === 'date' && value) {{
-                        const dateMatch = value.match(/^(\d{{2}})\/(\d{{2}})\/(\d{{4}})$/);
-                        if (dateMatch) {{
-                            const [, day, month, year] = dateMatch;
-                            value = `${{year}}-${{month}}-${{day}}`;
-                        }}
-                    }}
-                    
-                    if (input.type === 'radio') {{
-                        if (input.value === value.toString()) {{
-                            input.checked = true;
-                        }}
-                    }} else if (input.type === 'checkbox') {{
-                        input.checked = Boolean(value);
-                    }} else if (input.tagName === 'SELECT') {{
-                        // Handle select elements with Vietnamese value mapping
-                        if (fieldName === 'gender') {{
-                            // Map Vietnamese gender values to option values
-                            if (value === 'Nam') {{
-                                input.value = 'M';
-                            }} else if (value === 'Nữ') {{
-                                input.value = 'F';
-                            }} else {{
-                                input.value = value;
-                            }}
-                        }} else {{
-                            // For other select elements, try to find matching option text
-                            const options = input.querySelectorAll('option');
-                            let found = false;
-                            options.forEach(option => {{
-                                if (option.textContent.trim() === value || option.value === value) {{
-                                    input.value = option.value;
-                                    found = true;
-                                }}
-                            }});
-                            if (!found) {{
-                                input.value = value;
-                            }}
-                        }}
-                    }} else {{
-                        input.value = value;
-                    }}
-                }}
-            }});
-            
-            showMessage('Dữ liệu đã được tải thành công!', 'success');
-        }} else {{
-            showMessage('Không thể tải dữ liệu từ API', 'error');
-        }}
-    }} catch (error) {{
-        console.error('Error fetching data:', error);
-        showMessage('Lỗi kết nối đến API: ' + error.message, 'error');
-    }} finally {{
-        // Hide loading spinner
-        if (loadingSpinner) loadingSpinner.style.display = 'none';
-    }}
-}}
-
-function showMessage(message, type) {{
-    const messageDiv = document.getElementById('messageDiv');
-    messageDiv.textContent = message;
-    messageDiv.className = type === 'success' ? 'success-message' : 'error-message';
-    messageDiv.style.display = 'block';
-    
-    // Hide message after 5 seconds
-    setTimeout(() => {{
-        messageDiv.style.display = 'none';
-    }}, 5000);
-}}
-```
-
 OUTPUT FORMAT:
 Please provide your response in this exact format:
 
 ```html
-[Complete HTML content here]
+[Complete HTML content here - NO JavaScript included]
 ```
 
 ```json
@@ -299,4 +167,5 @@ IMPLEMENTATION VERIFICATION REQUIREMENTS:
 - Check that the form renders properly on different screen sizes
 - Verify that all rating systems are fully functional with the EXACT number of rating points specified in the field description
 - Test all validation rules with both valid and invalid inputs
-- Ensure specs.json contains ALL form fields with correct metadata 
+- Ensure specs.json contains ALL form fields with correct metadata
+- IMPORTANT: Do NOT include any JavaScript code in the HTML output 
